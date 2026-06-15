@@ -1,4 +1,4 @@
-name: Build Manager Core
+name: Build Manager Coree
 
 on:
   workflow_call:
