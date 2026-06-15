@@ -1,0 +1,40 @@
+name: Build Manager APK Only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Disable ksud / native build
+      run: |
+        cd manager
+        # Hapus dependensi ke ksud di build.gradle
+        sed -i '/ksud/d' app/build.gradle
+        sed -i '/prefab/d' app/build.gradle
+        sed -i '/externalNativeBuild/,/}/d' app/build.gradle
+        
+    - name: Build APK
+      run: |
+        cd manager
+        chmod +x gradlew
+        ./gradlew assembleRelease --stacktrace
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: KernelSU-Manager-Standalone
+        path: manager/app/build/outputs/apk/release/*.apk
