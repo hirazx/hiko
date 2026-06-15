@@ -1,4 +1,4 @@
-name: Build APK - Force Skip Errors
+name: Simple Build APK
 
 on:
   workflow_dispatch:
@@ -9,36 +9,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           
-      - name: Setup SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
-      - name: Patch build files
-        run: |
-          # Hapus semua referensi native di app/build.gradle
-          sed -i '/externalNativeBuild/d' manager/app/build.gradle
-          sed -i '/ndkVersion/d' manager/app/build.gradle
-          sed -i '/ksud/d' manager/app/build.gradle
-          
-          # Buat file dummy untuk bypass error
-          mkdir -p manager/app/src/main/cpp/uapi
-          echo "// dummy" > manager/app/src/main/cpp/uapi/ksu.h
-          
       - name: Build
+        working-directory: manager
         run: |
-          cd manager
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace || true
+          ./gradlew assembleRelease --no-daemon
           
-      - name: Find and Upload
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: APK-Files
-          path: |
-            manager/app/build/outputs/apk/**/*.apk
-            manager/app/build/outputs/apk/**/*.apk
+          name: APK
+          path: manager/app/build/outputs/apk/release/*.apk
